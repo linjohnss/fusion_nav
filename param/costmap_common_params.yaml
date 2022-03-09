@@ -1,0 +1,16 @@
+obstacle_range: 2.0
+raytrace_range: 3.5
+
+footprinttt: [[0.4, 0.0], [0.4, 0.6], [0.0, 0.6], [-0.4, 0.6], [-0.4, 0.0], [-0.4, -0.6], [0.0, -0.6], [0.4, -0.6]]
+footprintt: [[ 0.0, 0.4], [0.6, 0.4], [0.6, 0.0], [0.6, -0.4], [-0.0, -0.4], [-0.6, -0.4], [-0.6, -0.0], [-0.6, 0.4]]
+
+footprint: [[ 0.0, 0.2], [0.3, 0.2], [0.3, 0.0], [0.3, -0.2], [-0.0, -0.2], [-0.3, -0.2], [-0.3, -0.0], [-0.3, 0.2]]
+
+#robot_radius: x
+
+inflation_radius: 0.0
+cost_scaling_factor: 1.0
+
+map_type: costmap
+observation_sources: scan
+scan: {sensor_frame: scan_horiz, data_type: LaserScan, topic: lidar_h/scan, marking: false, clearing: false}

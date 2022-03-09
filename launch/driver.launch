@@ -1,0 +1,4 @@
+<launch>
+	<node name="iAmech_driver" pkg="fusion_nav" type="iAmech_driver.py" output="screen" respawn="true">
+	</node>
+</launch>
