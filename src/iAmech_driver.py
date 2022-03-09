@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from lib2to3.pgen2 import driver
 import math,time
 from math import sin, cos, pi
 import rospy
@@ -33,8 +34,6 @@ ODOM_TWIST_COVARIANCE2 = [1e-9, 0, 0, 0, 0, 0,
                           0, 0, 0, 1e6, 0, 0,
                           0, 0, 0, 0, 1e6, 0,
                           0, 0, 0, 0, 0, 1e-9]
-
-
 
 
 class iAmechROS():
@@ -92,15 +91,12 @@ class iAmechROS():
 		self.left_wheel = 0
 		self.right_wheel = 0
 		
-		now = rospy.Time.now()
-		self.then = now
-		
 		now = rospy.Time.now()    
 		self.then = now # time for determining dx/dy
 		self.t_delta = rospy.Duration(1.0 / self.rate)
 		self.t_next = now + self.t_delta
 		self.last_cmd_vel = now
-		
+
 		while not rospy.is_shutdown():
 			self.poll()
 				
@@ -124,9 +120,8 @@ class iAmechROS():
 		# PLC_AMS_ID = '192.168.100.100.1.1'
 
 		pyads.add_route_to_plc(SENDER_AMS, HOSTNAME, plc_ip, PLC_USERNAME, PLC_PASSWORD, route_name=ROUTE_NAME)
-		
-		
-		
+
+
 	def cmdVelCallback(self, req):
 		self.last_cmd_vel = rospy.Time.now()
 		
@@ -138,9 +133,12 @@ class iAmechROS():
 
 		v = int(x * 1000) # mm/s
 		
-		vr = 20*(2*v + 0.2*th*L) / (R) 
-		vl = 20*(2*v - 0.2*th*L) / (R) 
-		
+		vr = 20*(2*v + th*L) / (R) 
+		vl = 20*(2*v - th*L) / (R) 
+		# vr = (2*v + th*L) / 2
+		# vl = (2*v - th*L) / 2 
+		# vr = 40*v/R
+		# vl = 40*v/R
 		
 		self.left_wheel = int(vl)
 		self.right_wheel = int(vr)
@@ -150,9 +148,7 @@ class iAmechROS():
 		now = rospy.Time.now()
 		if now < self.t_next:
 			return
-		#l_vv = self.plc.read_by_name(".SLAM_L[2]", pyads.PLCTYPE_DINT)
-		#r_vv = self.plc.read_by_name(".SLAM_R[2]", pyads.PLCTYPE_DINT)
-		l_vv = self.plc.read_by_name(".SLAM_L[15]", pyads.PLCTYPE_DINT)
+		l_vv = self.plc.read_by_name(".SLAM_L[15]", pyads.PLCTYPE_DINT) # get current velocity of AMM
 		r_vv = self.plc.read_by_name(".SLAM_R[15]", pyads.PLCTYPE_DINT)
 		l_v = l_vv/1000
 		r_v = r_vv/1000
@@ -195,7 +191,7 @@ class iAmechROS():
 		# print(f'theta {self.theta}')
 		# print(l_v)
 		# print(r_v)			print(quaternion.w)
-			
+		
 		'''
 		print("====== x, dx, y, dy, dt, dth, lv, rv======")
 		print(self.x)
@@ -282,7 +278,7 @@ class iAmechROS():
 	def shutdown(self):
 		try:
 			rospy.loginfo("Stopping robot...")
-			# self.plc.write_by_name(".bSLAM_ServeON", 0, pyads.PLCTYPE_BOOL)
+			self.plc.write_by_name(".bSLAM_ServeON", 0, pyads.PLCTYPE_BOOL)
 			self.plc.close()
 			self.cmd_vel_pub.Publish(Twist())
 			rospy.sleep(2)
@@ -294,5 +290,4 @@ class iAmechROS():
 
 if __name__ == '__main__':
 	new_iAmech = iAmechROS()
-
 
