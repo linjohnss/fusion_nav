@@ -34,12 +34,7 @@
   <arg name="floam"    default="false"/> <!-- RTAB-Map should be built with FLOAM http://official-rtab-map-forum.206.s1.nabble.com/icp-odometry-with-LOAM-crash-tp8261p8563.html -->
   <arg name="floam_sensor" default="0"/> <!-- 0=16 rings (VLP16), 1=32 rings, 2=64 rings (kitti dataset) -->
 
-  <!-- <node pkg="tf" type="static_transform_publisher" name="lidar_footprint" args="0 0 -0.7 0 0 0 /velodyne /base_footprint 100" /> -->
-  <!-- <node pkg="tf" type="static_transform_publisher" name="lidar_footprint" args="0 0 0.7 0 0 0 /base_footprint /velodyne 100" /> -->
   <node pkg="tf" type="static_transform_publisher" name="lidar_base_link" args="0 0 0.7 0 0 0 /base_link /velodyne 100" />
-  <!-- <node pkg="tf" type="static_transform_publisher" name="lidar_base_link" args="0 0 0.7 0 0 0 /base_footprint /velodyne 100" /> -->
-  <!-- <node pkg="tf" type="static_transform_publisher" name="odom_map" args="0 0 0 0 0 0 /map /odom 100" /> -->
-
   
   <include unless="$(arg use_sim_time)" file="$(find fusion_nav)/launch/VLP16_points_robot.launch">
     <arg     if="$(arg scan_20_hz)" name="rpm" value="1200"/>
@@ -54,7 +49,6 @@
   <group ns="rtabmap">
     <node pkg="rtabmap_ros" type="icp_odometry" name="icp_odometry" output="screen">
       <remap from="scan_cloud" to="$(arg scan_topic)"/>
-      <!-- <param name="frame_id"        type="string" value="base_footprint"/>   -->
       <param name="frame_id"        type="string" value="$(arg frame_id)"/>  
       <param name="odom_frame_id"   type="string" value="odom"/>
       <param name="queue_size"      type="int"    value="$(arg queue_size_odom)"/>
@@ -62,7 +56,7 @@
       <param     if="$(arg scan_20_hz)" name="expected_update_rate" type="double" value="25"/>
       <param unless="$(arg scan_20_hz)" name="expected_update_rate" type="double" value="15"/>
      
-      <!-- <param name="guess_frame_id"   type="string" value="base_footprint"/> -->
+      <param name="guess_frame_id"   type="string" value="base_link"/>
 
       <!-- ICP parameters -->
       <param name="Icp/PointToPlane"        type="string" value="true"/>
@@ -95,16 +89,12 @@
 
     <node name="rtabmap" pkg="rtabmap_ros" type="rtabmap" output="screen" args="$(arg args)">
       <param name="database_path"       type="string" value="$(arg database_path)"/>
-      <!-- <param name="frame_id"            type="string" value="base_footprint"/> -->
       <param name="frame_id"        type="string" value="base_link"/>  
-      <!-- <param name="odom_frame_id"       type="string" value="odom"/> -->
       <param name="wait_for_transform_duration"  type="double"   value="$(arg wait_for_transform)"/>
       <param name="subscribe_depth"     type="bool"   value="false"/>
       <param name="subscribe_rgb"   type="bool" value="false"/>
       <param name="subscribe_scan_cloud"      type="bool"   value="true"/>
-      <!-- <param name="subscribe_scan"      type="bool"   value="true"/> -->
       <param name="approx_sync"          type="bool" value="false"/>
-      <!-- <param name="map_negative_poses_ignored" type="bool" value="true"/> -->
 
       <!-- When sending goals on /rtabmap/goal topic, use actionlib to communicate with move_base --> 
       <param name="use_action_for_goal" type="bool" value="true"/>
@@ -112,7 +102,6 @@
     
       <!-- inputs -->
       <remap from="scan_cloud" to="assembled_cloud"/>
-      <!-- <remap from="scan"       to="/scan"/>     -->
       <!-- output -->
       <remap from="grid_map" to="/map"/>
     
