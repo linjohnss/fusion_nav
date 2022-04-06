@@ -1,0 +1,112 @@
+<launch>
+  <!-- Arguments -->  
+  <arg name="database_path"     default="$(find fusion_nav)/maps/lidar_map.db"/>
+  <arg name="localization"      default="false"/>
+  <arg name="simulation"        default="false"/>
+  <arg name="sw_registered"     default="false"/>
+  <arg name="move_forward_only" default="false"/>
+  <arg name="use_sim_time"  default="false"/>
+  <arg name="organize_cloud" default="false"/>
+  <param if="$(arg use_sim_time)" name="use_sim_time" value="true"/>
+  <arg name="open_rviz" default="true"/>
+  <arg     if="$(arg localization)" name="args"  default=""/>
+  <arg unless="$(arg localization)" name="args"  default="--delete_db_on_start"/>  
+  <arg name="wait_for_transform"  default="0.2"/>
+  <arg name="scan_topic"    default="/velodyne_points"/> 
+  <arg name="frame_id"        default="velodyne"/>
+  <arg name="queue_size"      default="10"/> <!-- Set to 100 for kitti dataset to make sure all scans are processed -->
+  <arg name="queue_size_odom" default="1"/>  <!-- Set to 100 for kitti dataset to make sure all scans are processed -->
+  <arg name="loop_ratio"      default="0.2"/>
+  <arg name="resolution"         default="0.1"/> <!-- set 0.1-0.3 for indoor, set 0.3-0.5 for outdoor (0.4 for kitti) -->
+  <arg name="iterations"         default="10"/>
+  <arg name="scan_20_hz"    default="false"/> <!-- If we launch the velodyne with "rpm:=1200" argument -->
+    
+  <!-- Grid parameters -->
+  <arg name="ground_is_obstacle" default="true"/>
+  <arg name="grid_max_range"     default="6"/>
+    
+  <!-- For F2M Odometry -->
+  <arg name="ground_normals_up" default="false"/> <!-- set to true when velodyne is always horizontal to ground (ground robot, car, kitti) -->
+  <arg name="local_map_size"    default="15000"/>
+  <arg name="key_frame_thr"     default="0.8"/>
+    
+  <!-- For FLOAM Odometry -->
+  <arg name="floam"    default="false"/> <!-- RTAB-Map should be built with FLOAM http://official-rtab-map-forum.206.s1.nabble.com/icp-odometry-with-LOAM-crash-tp8261p8563.html -->
+  <arg name="floam_sensor" default="0"/> <!-- 0=16 rings (VLP16), 1=32 rings, 2=64 rings (kitti dataset) -->
+
+  <node pkg="tf" type="static_transform_publisher" name="lidar_base_link" args="0 0 0.7 0 0 0 /base_link /velodyne 100" />
+  
+  <include unless="$(arg use_sim_time)" file="$(find fusion_nav)/launch/VLP16_points_robot.launch">
+    <arg     if="$(arg scan_20_hz)" name="rpm" value="1200"/>
+    <arg unless="$(arg scan_20_hz)" name="rpm" value="600"/>
+    <arg name="organize_cloud" value="$(arg organize_cloud)"/>
+  </include>
+
+  <!-- Navigation stuff (move_base) -->
+  <include file="$(find fusion_nav)/launch/driver.launch"/>
+  <!-- Mapping -->
+  <group ns="rtabmap">
+    <node name="rtabmap" pkg="rtabmap_ros" type="rtabmap" output="screen" args="$(arg args)">
+      <param name="database_path"       type="string" value="$(arg database_path)"/>
+      <param name="frame_id"        type="string" value="velodyne"/> 
+      <param name="odom_frame_id"       type="string" value="odom"/>
+      <param name="wait_for_transform_duration"  type="double"   value="$(arg wait_for_transform)"/>
+      <param name="subscribe_depth"     type="bool"   value="false"/>
+      <param name="subscribe_rgb"   type="bool" value="false"/>
+      <param name="subscribe_scan_cloud"      type="bool"   value="true"/>
+      <!-- <param name="subscribe_scan"      type="bool"   value="true"/> -->
+      <param name="approx_sync"          type="bool" value="false"/>
+    
+      <!-- inputs -->
+      <remap from="scan_cloud" to="$(arg scan_topic)"/>
+      <!-- <remap from="scan" to="/scan"/> -->
+      <!-- output -->
+      <remap from="grid_map" to="/map"/>
+    
+      <!-- RTAB-Map's parameters: do "rosrun rtabmap rtabmap (double-dash)params" to see the list of available parameters. -->
+      <param name="Rtabmap/DetectionRate"          type="string" value="1"/>  
+      <param name="RGBD/NeighborLinkRefining"      type="string" value="false"/>
+      <param name="RGBD/ProximityBySpace"          type="string" value="true"/> <!-- Local loop closure detection (using estimated position) with locations in WM -->
+      <param name="RGBD/ProximityMaxGraphDepth"    type="string" value="0"/>
+      <param name="RGBD/ProximityPathMaxNeighbors" type="string" value="1"/>
+      <param name="RGBD/AngularUpdate"             type="string" value="0.05"/> <!-- Update map only if the robot is moving -->
+      <param name="RGBD/LinearUpdate"              type="string" value="0.05"/> <!-- Update map only if the robot is moving -->
+      <param name="Mem/NotLinkedNodesKept"         type="string" value="false"/>
+      <param name="Mem/STMSize"                    type="string" value="30"/>
+      <param name="Mem/LaserScanNormalK"           type="string" value="20"/>
+        
+      <param name="Reg/Strategy"                   type="string" value="1"/> <!-- Loop closure transformation: 0=Visual, 1=ICP, 2=Visual+ICP -->
+      <param name="Grid/CellSize"                  type="string" value="$(arg resolution)"/>
+      <param name="Grid/RangeMax"                  type="string" value="$(arg grid_max_range)"/>
+      <param name="Grid/ClusterRadius"             type="string" value="1"/>
+      <param name="Grid/GroundIsObstacle"          type="string" value="$(arg ground_is_obstacle)"/>
+      <param name="Optimizer/GravitySigma"         type="string" value="0.3"/>
+
+      <!-- ICP parameters -->
+      <param name="Icp/VoxelSize"                  type="string" value="0"/> <!-- already voxelized by point_cloud_assembler below -->
+      <param name="Icp/PointToPlaneK"              type="string" value="20"/>
+      <param name="Icp/PointToPlaneRadius"         type="string" value="0"/>
+      <param name="Icp/PointToPlane"               type="string" value="true"/>
+      <param name="Icp/Iterations"                 type="string" value="$(arg iterations)"/>
+      <param name="Icp/Epsilon"                    type="string" value="0.001"/>
+      <param name="Icp/MaxTranslation"             type="string" value="3"/>
+      <param name="Icp/MaxCorrespondenceDistance"  type="string" value="$(eval resolution*10)"/>
+      <param name="Icp/PM"                         type="string" value="true"/> 
+      <param name="Icp/PMOutlierRatio"             type="string" value="0.7"/>
+      <param name="Icp/CorrespondenceRatio"        type="string" value="$(arg loop_ratio)"/>
+   
+      <!-- localization mode -->
+      <param     if="$(arg localization)" name="Mem/IncrementalMemory" type="string" value="false"/>
+      <param unless="$(arg localization)" name="Mem/IncrementalMemory" type="string" value="true"/>
+      <param name="Mem/InitWMWithAllNodes" type="string" value="$(arg localization)"/> 
+    </node>
+
+  </group>
+
+  <!-- rviz -->
+  <group if="$(arg open_rviz)"> 
+    <node pkg="rviz" type="rviz" name="rviz" required="true"
+          args="-d $(find fusion_nav)/rviz/iAmech_lidar_rtabmap.rviz"/>
+  </group>
+</launch>
+

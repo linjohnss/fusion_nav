@@ -8,9 +8,9 @@
   <arg name="device_ip" default="" />
   <arg name="frame_id" default="velodyne" />
   <arg name="manager" default="$(arg frame_id)_nodelet_manager" />
-  <arg name="max_range" default="130.0" />
-  <arg name="min_range" default="1" />
-  <arg name="view_width" default="3.14" />
+  <arg name="max_range" default="8.0" /> <!--avoid flower-->
+  <arg name="min_range" default="1" /> <!-- avoid robot arm -->
+  <arg name="view_width" default="1.57" />
   <arg name="pcap" default="" />
   <arg name="port" default="2368" />
   <arg name="read_fast" default="false" />
