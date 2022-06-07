@@ -34,7 +34,7 @@
   <arg name="floam"    default="false"/> <!-- RTAB-Map should be built with FLOAM http://official-rtab-map-forum.206.s1.nabble.com/icp-odometry-with-LOAM-crash-tp8261p8563.html -->
   <arg name="floam_sensor" default="0"/> <!-- 0=16 rings (VLP16), 1=32 rings, 2=64 rings (kitti dataset) -->
 
-  <node pkg="tf" type="static_transform_publisher" name="lidar_base_link" args="0 0 0.7 0 0 0 /base_link /velodyne 100" />
+  <node pkg="tf" type="static_transform_publisher" name="lidar_base_link" args="0.6 -0.4 0.7 0 0 0 /base_link /velodyne  100" />
   
   <include unless="$(arg use_sim_time)" file="$(find fusion_nav)/launch/VLP16_points_robot.launch">
     <arg     if="$(arg scan_20_hz)" name="rpm" value="1200"/>
@@ -74,7 +74,7 @@
       <param name="Mem/NotLinkedNodesKept"         type="string" value="false"/>
       <param name="Mem/STMSize"                    type="string" value="30"/>
       <param name="Mem/LaserScanNormalK"           type="string" value="20"/>
-      <param name="Mem/LocalizationDataSaved"      type="string" value="true"/>
+      <param name="Mem/LocalizationDataSaved"      type="string" value="false"/>
         
       <param name="Reg/Strategy"                   type="string" value="1"/> <!-- Loop closure transformation: 0=Visual, 1=ICP, 2=Visual+ICP -->
       <param name="Grid/CellSize"                  type="string" value="$(arg resolution)"/>

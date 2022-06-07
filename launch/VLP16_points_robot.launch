@@ -8,9 +8,9 @@
   <arg name="device_ip" default="" />
   <arg name="frame_id" default="velodyne" />
   <arg name="manager" default="$(arg frame_id)_nodelet_manager" />
-  <arg name="max_range" default="8.0" /> <!--avoid flower-->
-  <arg name="min_range" default="1" /> <!-- avoid robot arm -->
-  <arg name="view_width" default="1.57" />
+  <arg name="max_range" default="15.0" /> <!--avoid flower-->
+  <arg name="min_range" default="1.5" /> <!-- avoid robot arm -->
+  <arg name="view_width" default="5" />
   <arg name="pcap" default="" />
   <arg name="port" default="2368" />
   <arg name="read_fast" default="false" />
@@ -23,8 +23,7 @@
   <arg name="timestamp_first_packet" default="false" />
   <arg name="laserscan_ring" default="-1" />
   <arg name="laserscan_resolution" default="0.007" />
-  <arg name="organize_cloud" default="false" />
-  
+  <arg name="organize_cloud" default="false" />  
 
   <!-- start nodelet manager and driver nodelets -->
   <include file="$(find velodyne_driver)/launch/nodelet_manager.launch">
@@ -53,6 +52,7 @@
     <arg name="target_frame" value="" />
     <arg name="max_range" value="$(arg max_range)"/>
     <arg name="min_range" value="$(arg min_range)"/>
+    <!-- <arg name="view_width" default="$(arg view_width)" /> -->
   </include>
 
   <!-- start laserscan nodelet -->

@@ -116,7 +116,7 @@ class iAmechROS():
 		PLC_USERNAME = 'Administrator'
 		PLC_PASSWORD = '1'
 		ROUTE_NAME = 'RouteToMyPC'
-		HOSTNAME = '192.168.100.191'
+		HOSTNAME = '192.168.100.117'
 		# PLC_AMS_ID = '192.168.100.100.1.1'
 
 		pyads.add_route_to_plc(SENDER_AMS, HOSTNAME, plc_ip, PLC_USERNAME, PLC_PASSWORD, route_name=ROUTE_NAME)
