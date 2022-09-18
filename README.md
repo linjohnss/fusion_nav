@@ -1,6 +1,9 @@
 # fusion_nav
 iAmech rtabmap  sensor fusion navigation
 
+[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/bkO1Wum0htg/0.jpg)](https://youtu.be/bkO1Wum0htg)
+
+
 ## RTAB-Map
 ```shell
 sudo apt install ros-noetic-rtabmap-ros
